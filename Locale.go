@@ -5,4 +5,5 @@ package goi18n
 type Locale struct {
 	PrimaryLanguage PrimaryLanguage
 	ExtendedLanguages []ExtendedLanguage
+	Script ScriptNumeric
 }
