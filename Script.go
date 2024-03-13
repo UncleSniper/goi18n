@@ -13,7 +13,7 @@ import (
 type ScriptNumeric uint32
 
 const (
-	SCNM_NONE = 0
+	SCNM_NONE ScriptNumeric = 0
 	SCNM_PRIV_LOWEST ScriptNumeric = 900
 	SCNM_PRIV_HIGHEST ScriptNumeric = 949
 	SCNM_EMOJI ScriptNumeric = 993
