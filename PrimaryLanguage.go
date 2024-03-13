@@ -3,6 +3,8 @@ package goi18n
 import (
 	"fmt"
 	"sync"
+	"errors"
+	"github.com/UncleSniper/goutil"
 )
 
 type PrimaryLanguage uint32
@@ -299,7 +301,7 @@ func NewPrimaryLanguage(parent PrimaryLanguage, shortNames ...string) PrimaryLan
 		parent: parent,
 	}
 	for _, name := range shortNames {
-		if len(name) > 0 {
+		if len(name) > 0 && !info.hasShortName(name) {
 			info.shortNames = append(info.shortNames, name)
 		}
 	}
@@ -309,7 +311,7 @@ func NewPrimaryLanguage(parent PrimaryLanguage, shortNames ...string) PrimaryLan
 func(builder primaryLanguageBuilder) Names(longNames ...string) PrimaryLanguage {
 	info := builder.info
 	for _, name := range longNames {
-		if len(name) > 0 {
+		if len(name) > 0 && !info.hasLongName(name) {
 			info.longNames = append(info.longNames, name)
 		}
 	}
@@ -341,6 +343,73 @@ func registerPrimaryLanguage(info *PrimaryLanguageInfo) (lang PrimaryLanguage) {
 	}
 	primaryLanguageMutex.Unlock()
 	return
+}
+
+func(info *PrimaryLanguageInfo) hasShortName(shortName string) bool {
+	for _, name := range info.shortNames {
+		if name == shortName {
+			return true
+		}
+	}
+	return false
+}
+
+func(info *PrimaryLanguageInfo) AddShortNames(shortNames ...string) error {
+	if info == nil {
+		return goutil.NewNilTargetError(&PrimaryLanguageInfo{}, "AddShortNames")
+	}
+	if info.id == NO_PRIMARY_LANGUAGE {
+		return errors.New("Trying to call PrimaryLanguageInfo.AddShortNames() when ID() == NO_PRIMARY_LANGUAGE")
+	}
+	primaryLanguageMutex.Lock()
+	if primaryLanguageMap == nil {
+		primaryLanguageMap = make(map[string]PrimaryLanguage)
+	}
+	for _, name := range shortNames {
+		if len(name) > 0 && !info.hasShortName(name) {
+			prev, _ := primaryLanguageMap[name]
+			if prev != NO_PRIMARY_LANGUAGE {
+				if prev == info.id {
+					continue
+				}
+				primaryLanguageMutex.Unlock()
+				return errors.New(fmt.Sprintf(
+					"Cannot add short name '%s' to PrimaryLanguage %d, since %d already has this short name",
+					name,
+					uint32(info.id),
+					uint32(prev),
+				))
+			}
+		}
+	}
+	for _, name := range shortNames {
+		if len(name) > 0 {
+			primaryLanguageMap[name] = info.id
+		}
+	}
+	primaryLanguageMutex.Unlock()
+	return nil
+}
+
+func(info *PrimaryLanguageInfo) hasLongName(longName string) bool {
+	for _, name := range info.longNames {
+		if name == longName {
+			return true
+		}
+	}
+	return false
+}
+
+func(info *PrimaryLanguageInfo) AddLongNames(longNames ...string) error {
+	if info == nil {
+		return goutil.NewNilTargetError(&PrimaryLanguageInfo{}, "AddLongNames")
+	}
+	for _, name := range info.longNames {
+		if len(name) > 0 && !info.hasLongName(name) {
+			info.longNames = append(info.longNames, name)
+		}
+	}
+	return nil
 }
 
 func GetPrimaryLanguageInfo(lang PrimaryLanguage) (info *PrimaryLanguageInfo) {
