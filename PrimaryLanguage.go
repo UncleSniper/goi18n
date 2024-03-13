@@ -1380,5 +1380,7 @@ func initPrimaryLanguages() {
 		"zul",
 	).Names("Zulu"), PL_Zulu)
 	// from https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes
+	//TODO
 	// from https://en.wikipedia.org/wiki/List_of_ISO_639-3_codes
+	//TODO
 }

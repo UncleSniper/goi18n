@@ -415,3 +415,10 @@ func GetScriptByCode(code string) (info *ScriptInfo) {
 	scriptMutex.Unlock()
 	return
 }
+
+func initScripts() {
+	// from https://en.wikipedia.org/wiki/ISO_15924
+	//TODO
+	// from https://unicode.org/iso15924/iso15924-codes.html
+	//TODO
+}
