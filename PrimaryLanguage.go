@@ -253,6 +253,7 @@ type PrimaryLanguageInfo struct {
 	parent PrimaryLanguage
 	shortNames []string
 	longNames []string
+	variantPrefix string
 }
 
 func(info *PrimaryLanguageInfo) ID() PrimaryLanguage {
@@ -283,8 +284,16 @@ func(info *PrimaryLanguageInfo) LongNames() []string {
 	return append([]string(nil), info.longNames...)
 }
 
+func(info *PrimaryLanguageInfo) VariantPrefix() string {
+	if info == nil {
+		return ""
+	}
+	return info.variantPrefix
+}
+
 var primaryLanguages []*PrimaryLanguageInfo
-var primaryLanguageMap map[string]PrimaryLanguage
+var primaryLanguageShortNameMap map[string]PrimaryLanguage
+var primaryLanguageVariantPrefixMap map[string]PrimaryLanguage
 
 var primaryLanguageMutex sync.Mutex
 
@@ -296,7 +305,11 @@ type primaryLanguageBuilder struct {
 	info *PrimaryLanguageInfo
 }
 
-func NewPrimaryLanguage(parent PrimaryLanguage, shortNames ...string) PrimaryLanguageLongNamesBuilder {
+func NewPrimaryLanguage(
+	parent PrimaryLanguage,
+	variantPrefix string,
+	shortNames ...string,
+) PrimaryLanguageLongNamesBuilder {
 	info := &PrimaryLanguageInfo {
 		parent: parent,
 	}
@@ -320,13 +333,20 @@ func(builder primaryLanguageBuilder) Names(longNames ...string) PrimaryLanguage 
 
 func registerPrimaryLanguage(info *PrimaryLanguageInfo) (lang PrimaryLanguage) {
 	primaryLanguageMutex.Lock()
-	if primaryLanguageMap == nil {
-		primaryLanguageMap = make(map[string]PrimaryLanguage)
+	if primaryLanguageShortNameMap == nil {
+		primaryLanguageShortNameMap = make(map[string]PrimaryLanguage)
+		primaryLanguageVariantPrefixMap = make(map[string]PrimaryLanguage)
 	}
 	for _, name := range info.shortNames {
-		if primaryLanguageMap[name] != NO_PRIMARY_LANGUAGE {
+		if primaryLanguageShortNameMap[name] != NO_PRIMARY_LANGUAGE {
 			panic(fmt.Sprintf("Cannot register new PrimaryLanguage: Short name '%s' is already registered", name))
 		}
+	}
+	if len(info.variantPrefix) > 0 && primaryLanguageVariantPrefixMap[info.variantPrefix] != NO_PRIMARY_LANGUAGE {
+		panic(fmt.Sprintf(
+			"Cannot register new PrimaryLanguage: Variant prefix '%s' is already registered",
+			info.variantPrefix,
+		))
 	}
 	lang = PrimaryLanguage(len(primaryLanguages) + 1)
 	if lang == 0 {
@@ -337,9 +357,13 @@ func registerPrimaryLanguage(info *PrimaryLanguageInfo) (lang PrimaryLanguage) {
 		parent: info.parent,
 		shortNames: append([]string(nil), info.shortNames...),
 		longNames: append([]string(nil), info.longNames...),
+		variantPrefix: info.variantPrefix,
 	})
 	for _, name := range info.shortNames {
-		primaryLanguageMap[name] = lang
+		primaryLanguageShortNameMap[name] = lang
+	}
+	if len(info.variantPrefix) > 0 {
+		primaryLanguageVariantPrefixMap[info.variantPrefix] = lang
 	}
 	primaryLanguageMutex.Unlock()
 	return
@@ -362,12 +386,13 @@ func(info *PrimaryLanguageInfo) AddShortNames(shortNames ...string) error {
 		return errors.New("Trying to call PrimaryLanguageInfo.AddShortNames() when ID() == NO_PRIMARY_LANGUAGE")
 	}
 	primaryLanguageMutex.Lock()
-	if primaryLanguageMap == nil {
-		primaryLanguageMap = make(map[string]PrimaryLanguage)
+	if primaryLanguageShortNameMap == nil {
+		primaryLanguageShortNameMap = make(map[string]PrimaryLanguage)
+		primaryLanguageVariantPrefixMap = make(map[string]PrimaryLanguage)
 	}
 	for _, name := range shortNames {
 		if len(name) > 0 && !info.hasShortName(name) {
-			prev, _ := primaryLanguageMap[name]
+			prev, _ := primaryLanguageShortNameMap[name]
 			if prev != NO_PRIMARY_LANGUAGE {
 				if prev == info.id {
 					continue
@@ -384,7 +409,7 @@ func(info *PrimaryLanguageInfo) AddShortNames(shortNames ...string) error {
 	}
 	for _, name := range shortNames {
 		if len(name) > 0 {
-			primaryLanguageMap[name] = info.id
+			primaryLanguageShortNameMap[name] = info.id
 		}
 	}
 	primaryLanguageMutex.Unlock()
