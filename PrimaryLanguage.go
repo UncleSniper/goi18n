@@ -429,7 +429,7 @@ func(info *PrimaryLanguageInfo) AddLongNames(longNames ...string) error {
 	if info == nil {
 		return goutil.NewNilTargetError(&PrimaryLanguageInfo{}, "AddLongNames")
 	}
-	for _, name := range info.longNames {
+	for _, name := range longNames {
 		if len(name) > 0 && !info.hasLongName(name) {
 			info.longNames = append(info.longNames, name)
 		}
