@@ -7,4 +7,5 @@ type Locale struct {
 	ExtendedLanguages []ExtendedLanguage
 	Script ScriptNumeric
 	Region Region
+	Variants []Variant
 }
