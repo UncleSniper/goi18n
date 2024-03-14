@@ -6,4 +6,5 @@ type Locale struct {
 	PrimaryLanguage PrimaryLanguage
 	ExtendedLanguages []ExtendedLanguage
 	Script ScriptNumeric
+	Region Region
 }
