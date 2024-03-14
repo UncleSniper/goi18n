@@ -63,17 +63,15 @@ func(info *RegionInfo) Level() uint32 {
 func(info *RegionInfo) Numeric() []RegionNumeric {
 	if info == nil || len(info.numeric) == 0 {
 		return nil
-	} else {
-		return append([]RegionNumeric(nil), info.numeric...)
 	}
+	return append([]RegionNumeric(nil), info.numeric...)
 }
 
 func(info *RegionInfo) Codes() []string {
 	if info == nil || len(info.codes) == 0 {
 		return nil
-	} else {
-		return append([]string(nil), info.codes...)
 	}
+	return append([]string(nil), info.codes...)
 }
 
 func(info *RegionInfo) Type() RegionType {
