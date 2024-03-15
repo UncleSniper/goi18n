@@ -8,4 +8,5 @@ type Locale struct {
 	Script ScriptNumeric
 	Region Region
 	Variants []Variant
+	Extensions []Extension
 }
