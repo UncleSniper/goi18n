@@ -16,6 +16,20 @@ func(loc *Locale) SortExtensions() error {
 	return nil
 }
 
+func(loc *Locale) Equals(other *Locale) bool {
+	if other == nil {
+		other = fallbackLocale
+	}
+	if loc.PrimaryLanguage != other.PrimaryLanguage || loc.Script != other.Script {
+		return false
+	}
+	if loc.Region != other.Region {
+		return false
+	}
+	return compareSlices(loc.ExtendedLanguages, other.ExtendedLanguages) &&
+			compareSlices(loc.Variants, other.Variants) && compareSlices(loc.Extensions, other.Extensions)
+}
+
 var fallbackLocale *Locale = &Locale {
 	PrimaryLanguage: PL_English,
 	ExtendedLanguages: nil,
@@ -28,3 +42,5 @@ var fallbackLocale *Locale = &Locale {
 func FallbackLocale() *Locale {
 	return fallbackLocale
 }
+
+type LocaleMapper func(*Locale) *Locale
