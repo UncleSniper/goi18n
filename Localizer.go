@@ -1,7 +1,18 @@
 package goi18n
 
-type Localizer interface {
-	//TODO
+import (
+	"reflect"
+)
+
+type GenLocalizer interface {
+	MessageKeyTypeName() string
+	GenMessage(*Locale, any)
+	NumberFormats() NumberFormats
+}
+
+type Localizer[KeyT any] interface {
+	GenLocalizer
+	Message(*Locale, KeyT)
 }
 
 type NumberFormats interface {
@@ -44,4 +55,8 @@ func ProtectNumberFormats(tpl *NumberFormatsTemplate) NumberFormats {
 
 func FallbackNumberFormats() NumberFormats {
 	return fallbackNumberFormats
+}
+
+func GetMessageKeyTypeName[KeyT any]() string {
+	return reflect.TypeOf(new(KeyT)).Elem().String()
 }
